@@ -1,0 +1,17 @@
+Create a refactoring plan for CombatService and MaterialService to implement:
+1. Zone-based damage calculation
+2. Enemy zone hit simulation using accuracy
+3. Direct loot generation from enemyloot table
+4. Style inheritance for materials
+5. Gold/XP scaling with tier multipliers
+6. HP scaling only with tier, not combat level
+
+Requirements:
+- Update startCombat method to use StatsService for stats calculation
+- Modify executeAttack/executeDefense to use zone mechanics
+- Refactor generateLoot to directly query enemyloot table
+- Ensure style_id is inherited during loot generation
+- Use tier multipliers for gold/XP calculations
+- HP should scale with tier.base_hp, not level
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

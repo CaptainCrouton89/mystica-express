@@ -1,0 +1,18 @@
+**Assumption A-2**: Backend API schema defines correct parameters for equipment requests
+
+**Context**: User reports weapon items being equipped to armor slots. Need to validate the API schema definition.
+
+**Investigation Target**: 
+- File: `mystica-express/src/types/schemas.ts` around lines 21-23
+- Focus: Quote the exact `EquipItemSchema` definition
+- Validate: What parameters are required/optional for equip requests?
+- Check: Does schema expect slot parameter or auto-detect from item?
+
+**Expected Evidence**: 
+- Exact Zod schema definition for equipment API
+- Required vs optional parameters
+- Any slot-related validation rules
+
+**Scope**: trace-only - find and quote the API schema code
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

@@ -1,0 +1,18 @@
+**Assumption A-4**: EquipmentService correctly maps item categories to equipment slots
+
+**Context**: User reports weapon items being equipped to armor slots. This is likely the core issue - incorrect category-to-slot mapping.
+
+**Investigation Target**: 
+- File: `mystica-express/src/services/EquipmentService.ts` around lines 154-174
+- Focus: Quote the exact `mapCategoryToSlot()` method
+- Validate: How does service determine slot from item category?
+- Check: Are weapon categories correctly mapped to weapon slot?
+
+**Expected Evidence**: 
+- Exact category-to-slot mapping logic
+- Switch/if statements showing category → slot assignments
+- Any default or fallback slot assignments
+
+**Scope**: trace-only - find and quote the category mapping method
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

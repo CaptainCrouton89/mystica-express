@@ -1,0 +1,30 @@
+Fix the openai-dialogue integration test to account for response wrapper middleware.
+
+**Problem:**
+Tests at `mystica-express/tests/integration/openai-dialogue.test.ts:199,236` are failing because they expect `response.body.dialogue_response` but the responseWrapper middleware wraps all successful responses.
+
+**Current test expects:**
+```typescript
+response.body.dialogue_response
+```
+
+**Actual response structure (due to responseWrapper at app.ts:38):**
+```typescript
+{ success: true, data: { dialogue_response: {...} }, timestamp }
+```
+
+**Correct access path:**
+```typescript
+response.body.data.dialogue_response
+```
+
+**Task:**
+1. Read `mystica-express/tests/integration/openai-dialogue.test.ts` to understand all places that access `response.body.dialogue_response`
+2. Read `mystica-express/src/middleware/responseWrapper.ts` to confirm the wrapping behavior
+3. Update all test assertions to use `response.body.data.dialogue_response` instead of `response.body.dialogue_response`
+4. Look for other similar response body accesses in the test file that may need updating
+5. Verify the fix by running: `pnpm test tests/integration/openai-dialogue.test.ts`
+
+Return the test results showing the fix works.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

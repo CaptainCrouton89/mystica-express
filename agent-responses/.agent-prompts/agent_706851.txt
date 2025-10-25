@@ -1,0 +1,3 @@
+Analyze src/services/CombatService.ts and related files to understand current combat and loot generation logic. Identify key methods for zone-based damage, enemy hit simulation, and loot generation.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

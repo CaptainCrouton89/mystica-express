@@ -1,0 +1,31 @@
+Remove the fallback code from the combat rating calculation in the CombatService and CombatRepository. We never want fallbacks - if the database function fails, the code should throw an error.
+
+**Context:**
+The server logs show:
+```
+Database combat_rating function failed, using fallback: DatabaseError: Database operation failed: Could not find the function public.combat_rating(atk, def, hp) in the schema cache
+```
+
+This indicates there's fallback logic when the `combat_rating` database function is not found. This fallback should be removed.
+
+**Files to modify:**
+1. `mystica-express/src/repositories/CombatRepository.ts` - Look for `calculateCombatRating` method around line 782
+2. `mystica-express/src/services/CombatService.ts` - Look for `calculateCombatRating` method around line 1083
+
+**Instructions:**
+1. Find any try-catch blocks or conditional logic that provides fallback behavior when the database function fails
+2. Remove the fallback code - let the error throw naturally
+3. If there's a fallback calculation, remove it entirely
+4. Ensure the methods simply call the database function and throw if it fails
+
+**Expected result:**
+- No fallback logic
+- Clean error propagation when database function is missing
+- Code should fail fast with clear error messages
+
+Do NOT:
+- Add any new functionality
+- Change the database function itself
+- Modify any other error handling logic
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

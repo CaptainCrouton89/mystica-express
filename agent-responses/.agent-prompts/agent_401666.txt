@@ -1,0 +1,27 @@
+Review this combat system bug fix and provide senior engineer perspective. 
+
+**Context:**
+The team identified and fixed a double-call race condition in combat session completion that was causing 404 errors after victory. They removed duplicate `completeSession()` calls from `executeAttack()` and `executeDefense()`, consolidating completion into `completeCombatInternal()`.
+
+**Your task (5 detailed answers expected):**
+
+1. **Root Cause Validation** - Read the logs in the prompt and CombatRepository.ts to confirm if the race condition analysis is correct. Are they missing something deeper?
+
+2. **Architectural Soundness** - Should session completion happen inside `completeCombatInternal()` or is there a better pattern? Consider separation of concerns and testability.
+
+3. **Race Condition Risks** - Examine the entire combat flow in CombatService.ts (lines 400-700 approximately). Are there other race conditions lurking in: session fetch → damage calc → HP update → log update → rewards generation → session deletion?
+
+4. **Session Validation** - Evaluate `completeSession()` in CombatRepository.ts (line ~336). Is calling `getActiveSession()` to validate necessary, or wasteful? Should they: (a) remove validation, (b) pass session object, or (c) keep as-is?
+
+5. **Transaction Boundaries** - Look at `completeCombatInternal()` and `applyRewardsTransaction()` calls in CombatService.ts. Should these be one atomic operation? Are there edge cases where rewards generate but don't apply?
+
+6. **Code Smells** - Any anti-patterns, error handling gaps, or architectural issues in the combat completion flow?
+
+**Files to review:**
+- `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/services/CombatService.ts` - Full combat flow, focus on executeAttack(), completeCombatInternal(), applyRewardsTransaction()
+- `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/repositories/CombatRepository.ts` - completeSession() and session update logic
+- `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/controllers/CombatController.ts` - Request handling
+
+**Return format:** Provide 6 sections (one per question), each 3-5 sentences. Be concise but thorough. Flag any critical issues with [CRITICAL] prefix. For architectural suggestions, explain the tradeoffs.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

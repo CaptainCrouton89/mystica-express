@@ -1,0 +1,87 @@
+{
+  "agent_687840": {
+    "pid": 40674,
+    "nodePid": 40674,
+    "sessionId": "9541009c-fb08-407d-a2cf-e5a4d07c4b2a",
+    "transcriptPath": "/Users/silasrhyneer/.claude/projects/-Users-silasrhyneer-Code-new-mystica-mystica-express/9541009c-fb08-407d-a2cf-e5a4d07c4b2a.jsonl",
+    "parentSessionId": "b02c09ea-71bf-4242-a1fa-4ef54382fcaf",
+    "parentPid": 83815
+  },
+  "agent_509492": {
+    "pid": 40678,
+    "nodePid": 40678,
+    "sessionId": "a15d5254-8e99-4c42-bec4-ab24b26753c1",
+    "transcriptPath": "/Users/silasrhyneer/.claude/projects/-Users-silasrhyneer-Code-new-mystica-mystica-express/a15d5254-8e99-4c42-bec4-ab24b26753c1.jsonl",
+    "parentSessionId": "b02c09ea-71bf-4242-a1fa-4ef54382fcaf",
+    "parentPid": 83815
+  },
+  "agent_470039": {
+    "pid": 28930,
+    "depth": 1,
+    "parentId": "agent_697743",
+    "agentType": "validation-orchestrator",
+    "allowedAgents": [
+      "completion-validator"
+    ],
+    "allowedMcpServers": null,
+    "missingMcpServers": [],
+    "spawnedBySessionId": "bd5ac108-2065-42a5-b881-72066a6c6666",
+    "nodePid": 28930,
+    "sessionId": "76d91599-0844-401e-970e-d07c96862373",
+    "transcriptPath": "/Users/silasrhyneer/.claude/projects/-Users-silasrhyneer-Code-new-mystica-mystica-express/76d91599-0844-401e-970e-d07c96862373.jsonl",
+    "parentSessionId": "bd5ac108-2065-42a5-b881-72066a6c6666",
+    "parentPid": 16024
+  },
+  "agent_901159": {
+    "pid": 31983,
+    "depth": 0,
+    "parentId": null,
+    "agentType": "backend-developer",
+    "allowedAgents": null,
+    "allowedMcpServers": null,
+    "missingMcpServers": [],
+    "spawnedBySessionId": "12c999cb-9f06-4099-a55c-f6e50e1be0e1",
+    "nodePid": 31983,
+    "sessionId": "97958816-0326-4dee-87b9-197ff4fcb4cc",
+    "transcriptPath": "/Users/silasrhyneer/.claude/projects/-Users-silasrhyneer-Code-new-mystica-mystica-express/97958816-0326-4dee-87b9-197ff4fcb4cc.jsonl",
+    "parentSessionId": "12c999cb-9f06-4099-a55c-f6e50e1be0e1",
+    "parentPid": 42539
+  },
+  "agent_665412": {
+    "pid": 88552,
+    "depth": 0,
+    "parentId": null,
+    "agentType": "general-purpose",
+    "allowedAgents": null,
+    "allowedMcpServers": null,
+    "missingMcpServers": [],
+    "spawnedBySessionId": "5dbb4440-1f45-417b-bf79-f5ddd9b5dae4",
+    "nodePid": 88552,
+    "sessionId": "6a18dfc4-0b56-425d-b7c6-c8c2bd73390d",
+    "transcriptPath": "/Users/silasrhyneer/.claude/projects/-Users-silasrhyneer-Code-new-mystica-mystica-express/6a18dfc4-0b56-425d-b7c6-c8c2bd73390d.jsonl",
+    "parentSessionId": "5dbb4440-1f45-417b-bf79-f5ddd9b5dae4",
+    "parentPid": 17682
+  },
+  "agent_756801": {
+    "pid": 15433,
+    "depth": 1,
+    "parentId": "agent_154616",
+    "agentType": "junior-engineer",
+    "allowedAgents": null,
+    "allowedMcpServers": null,
+    "missingMcpServers": [],
+    "spawnedBySessionId": "865e30cd-0f70-4e59-9562-3d74728a9d39",
+    "sessionId": "bfab2bd0-a9be-41ad-80d1-959dc0c5efe3",
+    "transcriptPath": "/Users/silasrhyneer/.claude/projects/-Users-silasrhyneer-Code-new-mystica-mystica-express/bfab2bd0-a9be-41ad-80d1-959dc0c5efe3.jsonl",
+    "parentSessionId": "62e78fff-c500-4111-9c45-93118999e3a1",
+    "parentPid": 10657
+  },
+  "agent_548433": {
+    "pid": 15453,
+    "nodePid": 15453,
+    "sessionId": "b43b8c2d-84ac-42d2-9044-b33ee5833b36",
+    "transcriptPath": "/Users/silasrhyneer/.claude/projects/-Users-silasrhyneer-Code-new-mystica-mystica-express/b43b8c2d-84ac-42d2-9044-b33ee5833b36.jsonl",
+    "parentSessionId": "62e78fff-c500-4111-9c45-93118999e3a1",
+    "parentPid": 10657
+  }
+}

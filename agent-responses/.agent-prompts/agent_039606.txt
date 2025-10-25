@@ -1,0 +1,242 @@
+# Task T3: Refactor CombatService to Use New Stat System, Zone Mechanics, and Direct Loot Queries
+
+Implement Task 3 from the enemy stat refactor plan. This is a complex refactor that updates the core combat logic to use normalized stats, zone-based mechanics, and the new enemyloot table.
+
+**Plan Reference:** @docs/plans/enemy-stat-refactor/plan.yaml (Tasks T3 section, lines 242-249)
+
+## Files to Modify
+
+1. **mystica-express/src/services/CombatService.ts** - Core combat logic refactor
+2. **mystica-express/src/services/MaterialService.ts** - Style inheritance updates
+
+## Critical: Type Safety
+
+**MUST ensure all code you write compiles with NO TypeScript errors.** Use types from:
+- database.types.ts (EnemyType, Tier, CombatSession from T1 regeneration)
+- combat.types.ts (EnemyRealizedStats, EnemyLoot, ZoneDistribution from T1)
+- Existing service types
+
+If you encounter type errors during implementation, fix them immediately. Do NOT leave type errors in your code.
+
+## Success Criteria
+
+✓ startCombat calculates realized stats (not query pools), stores realized stats in session
+✓ executeAttack simulates enemy zone hit using accuracy, applies zone+crit modifiers
+✓ executeDefense uses player zone input, applies zone multiplier to defense
+✓ completeCombat generates loot from enemyloot table directly, applies style inheritance
+✓ generateLoot method queries enemyloot, applies style_id = enemy.style_id for styled enemies
+✓ Gold calculated: 10 × combat_level × tier.gold_multiplier
+✓ XP calculated: 20 × combat_level × tier.xp_multiplier
+✓ HP only scales with tier, not combat level
+✓ No loot pool logic remains (no references to lootpools table)
+✓ **ALL CODE COMPILES WITH NO TYPESCRIPT ERRORS**
+
+## Detailed Requirements
+
+### startCombat Updates
+
+```typescript
+async startCombat(
+  userId: string,
+  locationId: string,
+  enemyTypeId: string,
+  combatLevel: number
+): Promise<CombatSession>
+```
+
+**Changes:**
+1. Fetch enemy with: `enemyRepository.getEnemyTypeWithTier(enemyTypeId)` (returns {enemyType, tier})
+2. Calculate realized stats using StatsService.calculateEnemyRealizedStats(enemyType, combatLevel, tier)
+3. Store realized stats in session (base_atk, base_def, hp - NOT normalized stats)
+4. **REMOVE:** loot pool queries, applied_loot_pools assignment
+5. Create and return CombatSession with realized stats stored
+
+**Key points:**
+- Realized stats = final damage/defense values used for actual combat
+- Normalized stats stay on enemyType, realized stats computed at start
+- HP = base_hp × tier.difficulty_multiplier (verified in calculateEnemyRealizedStats)
+
+### executeAttack Updates
+
+```typescript
+async executeAttack(
+  sessionId: string,
+  attackerType: 'player' | 'enemy'
+): Promise<AttackResult>
+```
+
+**Changes:**
+1. Get combat session and determine attacker/defender
+2. **If enemy attacking:**
+   - Simulate zone hit: `StatsService.simulateEnemyZoneHit(enemy.atk_accuracy_normalized)`
+   - Get zone multiplier: zoneMultipliers[zone - 1]
+   - Get crit multiplier: `StatsService.getCritMultiplier(zone)`
+   - Final damage = enemy_base_atk × zone_multiplier × crit_multiplier
+3. **If player attacking:**
+   - Use player's selected zone (from client input)
+   - Apply zone multiplier and crit multiplier similarly
+4. Return AttackResult with full zone info (zone, zone_multiplier, crit_occurred, crit_multiplier, final_damage)
+5. Update defender HP
+
+**Zone multipliers array:**
+```typescript
+const zoneMultipliers = [1.5, 1.25, 1.0, 0.75, 0.5]; // zones 1-5
+```
+
+**Crit occurred calculation:**
+```typescript
+const crit_occurred = critMultiplier > 1.0; // True if crit rolled
+const crit_multiplier_response = crit_occurred ? critMultiplier : null;
+```
+
+### executeDefense Updates
+
+```typescript
+async executeDefense(
+  sessionId: string,
+  defenseZone: 1 | 2 | 3 | 4 | 5
+): Promise<DefenseResult>
+```
+
+**Changes:**
+1. Get combat session and player defense value
+2. Calculate zone multiplier from defenseZone
+3. Apply zone multiplier to defense: `player_base_def × zoneMultiplier`
+4. Calculate damage reduction = incoming_damage × (defense / (defense + incoming_damage))
+5. Return DefenseResult with zone info
+
+### completeCombat and generateLoot Updates
+
+```typescript
+async completeCombat(sessionId: string): Promise<CombatRewards>
+```
+
+**Changes:**
+1. Get combat session and enemy type
+2. Call `generateLoot(enemy.id, enemy.style_id, session.combat_level, tier)`
+3. Update user inventory (materials, items, gold, xp)
+4. Return CombatRewards with style_id included in materials
+
+**generateLoot method:**
+
+```typescript
+private async generateLoot(
+  enemyTypeId: string,
+  enemyStyleId: string,
+  combatLevel: number,
+  tier: Tier
+): Promise<{materials: MaterialStack[], items: Item[], gold: number, xp: number}>
+```
+
+**Implementation:**
+
+1. **Material drops (always exactly 1):**
+   ```typescript
+   const materialLoot = await enemyRepository.getEnemyLootTable(enemyTypeId, 'material');
+   if (materialLoot.length === 0) throw new Error('No material loot configured');
+   
+   const droppedMaterial = weightedRandom(materialLoot, 'drop_weight');
+   
+   // Style inheritance
+   const styleId = enemyStyleId !== 'normal' ? enemyStyleId : 'normal';
+   
+   const materialStack = await materialRepository.createMaterialStack(
+     session.user_id,
+     droppedMaterial.lootable_id,
+     styleId,
+     1
+   );
+   ```
+
+2. **Item drops (optional):**
+   ```typescript
+   const itemLoot = await enemyRepository.getEnemyLootTable(enemyTypeId, 'item_type');
+   let droppedItem = null;
+   
+   if (itemLoot.length > 0) {
+     // Weighted random with failure case (some items have low weight = rare)
+     const roll = Math.random() * totalWeight;
+     if (roll < selectedItemWeight) {
+       droppedItem = await itemRepository.createItem(...);
+     }
+   }
+   ```
+
+3. **Gold reward:**
+   ```typescript
+   const gold = Math.floor(10 * combatLevel * tier.gold_multiplier);
+   ```
+
+4. **XP reward:**
+   ```typescript
+   const xp = Math.floor(20 * combatLevel * tier.xp_multiplier);
+   ```
+
+### MaterialService Updates
+
+**applyMaterial method:**
+- Update to check style_id when creating MaterialInstance
+- Ensure style_id passed through to item creation
+- Verify is_styled flag set correctly (ANY applied material with style_id !== 'normal' makes item styled)
+
+**Material combo hash calculation:**
+- Include style_ids in hash (sorted order) so different styled materials don't combine
+- Example: materials=['Gum-normal', 'Coffee-pixel_art'] → different hash than ['Gum-pixel_art', 'Coffee-normal']
+
+**Image generation:**
+- Pass all style_ids to image generation for visual consistency
+
+## Type Safety Checklist
+
+Before submitting:
+- [ ] All function parameters have explicit types
+- [ ] All return types explicitly defined
+- [ ] No `any` types used
+- [ ] EnemyType, Tier use types from database.types.ts
+- [ ] EnemyRealizedStats, EnemyLoot use types from combat.types.ts
+- [ ] CombatSession uses types from database.types.ts
+- [ ] ZoneDistribution and zone multipliers properly typed
+- [ ] Compile with `pnpm build` - NO errors or warnings
+
+## Error Handling
+
+- Throw errors early (no fallbacks)
+- Descriptive error messages for loot query failures
+- Validate zone values (1-5)
+- Validate tier multipliers > 0
+- Validate combat_level > 0
+
+## Build Validation
+
+After implementation:
+```bash
+cd mystica-express
+pnpm build
+```
+
+**CRITICAL:** Build MUST pass with zero TypeScript errors. If you see type errors, fix them immediately before completing this task.
+
+## References
+
+- EnemyStatRefactor.md (zone system, damage calculations)
+- plan.yaml (detailed requirements)
+- database.types.ts (T1 regenerated types)
+- combat.types.ts (T1 new types)
+- StatsService.ts (T1 utility functions)
+- EnemyRepository.ts (T2 new methods)
+
+## Deliverables
+
+- Modified: mystica-express/src/services/CombatService.ts
+- Modified: mystica-express/src/services/MaterialService.ts
+- startCombat calculates realized stats (not pools)
+- executeAttack simulates zone hits with zone+crit modifiers
+- executeDefense applies zone defense modifiers
+- generateLoot queries enemyloot table directly
+- Style inheritance works (enemy.style_id → material.style_id)
+- Gold = 10 × level × tier.gold_multiplier
+- XP = 20 × level × tier.xp_multiplier
+- HP scaling verified (tier only, not level)
+- **BUILD PASSES WITH ZERO TYPESCRIPT ERRORS**
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

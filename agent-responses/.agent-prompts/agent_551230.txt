@@ -1,0 +1,63 @@
+You are verifying that the frontend (SwiftUI iOS app) can handle the newly enriched loot reward data from the backend.
+
+## Context
+
+The backend now returns enriched item/material data with additional fields:
+- **Items:** item_type_id, name, category, rarity, description, base_stats, appearance_data, style_id, style_name
+- **Materials:** material_id, name, description, stat_modifiers, style_id, style_name
+
+Previously items/materials only had: name, category (items only), rarity (items only), style_id, style_name
+
+## Your Task
+
+Investigate and report on:
+
+1. **Frontend Data Models**
+   - Find ItemDrop and MaterialDrop types/models in the iOS app
+   - What fields do they currently support?
+   - Can they handle the new fields (description, base_stats, stat_modifiers, appearance_data)?
+   - Are these fields optional or required?
+
+2. **Victory Screen Display Components**
+   - Find VictoryView.swift and ItemsSection/MaterialsSection components
+   - What data do they currently display?
+   - Can they display descriptions, stats, appearance data?
+   - Is there any rendering logic that would break with additional fields?
+
+3. **API Contract/Codable Decoding**
+   - Find the CombatRewards struct/type definition
+   - Check if ItemDrop and MaterialDrop Codable models match backend structure
+   - Would they successfully decode the new fields?
+   - Are there any @Decodable or @Codable type mismatches?
+
+4. **Data Mapping/Transformation**
+   - Check DefaultCombatRepository or equivalent API response mapper
+   - Is the mapping from backend JSON to frontend models correct?
+   - Would extra fields in JSON cause decoding errors or silent ignoring?
+
+5. **UI Readiness**
+   - VictoryView currently shows placeholders and "normal" style
+   - Is there existing UI infrastructure to display descriptions, stats, appearance?
+   - Would rendering the new data require UI changes?
+
+## Files to Search
+
+- `New-Mystica/New-Mystica/*.swift` - Look for ItemDrop, MaterialDrop, CombatRewards types
+- `New-Mystica/New-Mystica/ViewModels/*.swift` - Look for data transformations
+- `New-Mystica/New-Mystica/Services/*.swift` - Look for API response mapping
+- `New-Mystica/New-Mystica/Models/*.swift` - Look for Codable definitions
+- `New-Mystica/New-Mystica/VictoryView.swift` - Already examined but check Codable handling
+
+## Output Expected
+
+Report with:
+1. Current frontend ItemDrop/MaterialDrop field definitions (exact Swift types)
+2. Whether new fields will cause decoding errors or be silently accepted
+3. Whether VictoryView can display new fields without code changes
+4. Any breaking changes or compatibility issues
+5. Specific file paths and line numbers where changes might be needed
+6. Overall verdict: "READY" (no changes needed) or "NEEDS UPDATE" (specify what)
+
+Do NOT make any changes. Just investigate and report findings.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

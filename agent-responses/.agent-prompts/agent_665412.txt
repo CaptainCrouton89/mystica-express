@@ -1,0 +1,159 @@
+I need a senior engineer's perspective on a combat system bug we've been debugging. Please review the problem, our fixes, and provide advice on whether we're on the right track or missing something.
+
+## The Problem
+
+When a player defeats an enemy in combat, the backend throws a 404 error: "Combat session not found" after successfully calculating the victory. The client then can't retrieve rewards.
+
+## System Architecture
+
+**Combat Flow:**
+1. Client calls `POST /combat/attack` with tap position
+2. `CombatController.attack()` → `CombatService.executeAttack()`
+3. Service calculates damage, updates HP, checks if enemy died
+4. If victory: generate rewards, delete session, return response with rewards
+5. Client displays victory screen
+
+**Key Files:**
+- `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/services/CombatService.ts` - Business logic
+- `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/repositories/CombatRepository.ts` - Data access
+- `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/controllers/CombatController.ts` - HTTP handlers
+
+## Observed Behavior (from logs)
+
+```
+23:03:19 [info]: 🎉 Combat victory!
+23:03:19 [info]: 📊 Completing combat session
+23:03:19 [info]: 💰 Generating and applying rewards
+23:03:19 [info]: 📊 Completing combat session (internal)
+[404 ERROR] NotFoundError: combat session with identifier 'xxx' not found
+    at CombatRepository.completeSession (CombatRepository.ts:336)
+    at CombatService.completeCombatInternal (CombatService.ts:658)
+    at CombatService.executeAttack (CombatService.ts:455)
+```
+
+Notice the TWO "Completing combat session" logs - this revealed the root cause.
+
+## Root Cause Analysis
+
+The code was calling `completeSession()` TWICE:
+
+**Location 1: In `executeAttack()` after damage calculation (CombatService.ts:434-437)**
+```typescript
+// Auto-complete session if combat ended
+if (combatStatus === 'victory' || combatStatus === 'defeat') {
+  logger.info('📊 Completing combat session', { sessionId, result: combatStatus });
+  await this.combatRepository.completeSession(sessionId, combatStatus); // FIRST CALL
+}
+```
+
+**Location 2: Inside `completeCombatInternal()` (CombatService.ts:658)**
+```typescript
+async completeCombatInternal(sessionId: string, result: 'victory' | 'defeat', session: any) {
+  logger.info('📊 Completing combat session (internal)', { sessionId, result });
+  
+  // Complete session in database
+  await this.combatRepository.completeSession(sessionId, result); // SECOND CALL
+  // ...
+}
+```
+
+**Why this caused the 404:**
+
+`CombatRepository.completeSession()` does:
+```typescript
+async completeSession(sessionId: string, result: CombatResult): Promise<void> {
+  const sessionData = await this.getActiveSession(sessionId); // Only gets sessions with outcome IS NULL
+  if (!sessionData) {
+    throw new NotFoundError('combat session', sessionId); // 404 HERE
+  }
+  
+  await this.client
+    .from('combatsessions')
+    .update({ outcome: result })
+    .eq('id', sessionId)
+    .is('outcome', null); // Sets outcome = 'victory'
+}
+```
+
+**The race condition:**
+1. First `completeSession()` sets `outcome = 'victory'`
+2. Second `completeSession()` calls `getActiveSession()` which filters for `outcome IS NULL`
+3. Session no longer matches (outcome is now 'victory')
+4. Returns null → throws 404
+
+## Our Fix
+
+**Changed:**
+1. Removed the duplicate `completeSession()` calls from `executeAttack()` and `executeDefense()`
+2. Session completion now happens ONLY inside `completeCombatInternal()`
+3. Added comments explaining the change
+
+**CombatService.ts after fix:**
+```typescript
+await this.combatRepository.updateSession(sessionId, {
+  combatLog: [...currentLog, newLogEntry],
+});
+
+// NOTE: Session completion now happens in completeCombatInternal() to avoid duplicate calls
+
+// Log combat event
+await this.combatRepository.addLogEvent(sessionId, {
+  seq: turnNumber,
+  // ...
+});
+
+// Apply rewards atomically before response for terminal combat states
+let rewards: CombatRewards | null = null;
+if (combatStatus === 'victory' || combatStatus === 'defeat') {
+  logger.info('💰 Generating and applying rewards', { sessionId, result: combatStatus });
+  
+  // Generate rewards for this combat outcome (pass session to avoid refetch)
+  rewards = await this.completeCombatInternal(sessionId, combatStatus, session);
+  
+  // Apply rewards and delete session atomically
+  await this.applyRewardsTransaction(session.userId, sessionId, rewards);
+  
+  logger.info('✅ Session cleanup complete', { sessionId });
+}
+```
+
+## Questions for Senior Engineer Review
+
+1. **Is our root cause analysis correct?** Did we identify the actual bug or are we missing something deeper?
+
+2. **Is the fix architecturally sound?** Should session completion be inside `completeCombatInternal()` or should it be handled differently?
+
+3. **Are there other race conditions we should worry about?** The combat flow has:
+   - Session fetch
+   - Damage calculation
+   - HP updates
+   - Log updates
+   - Rewards generation
+   - Session deletion
+   
+   Could any of these create similar issues?
+
+4. **Should `completeSession()` even call `getActiveSession()`?** It seems wasteful to refetch the session just to validate it exists. Should we:
+   - Remove the validation entirely and let the UPDATE fail if session doesn't exist?
+   - Pass the session object to avoid the refetch?
+   - Keep it as-is for data integrity?
+
+5. **Is the transaction boundary correct?** We have:
+   - `completeCombatInternal()` - generates rewards
+   - `applyRewardsTransaction()` - applies rewards and deletes session
+   
+   Should these be a single atomic operation?
+
+6. **Any other code smells or anti-patterns** you notice in this flow?
+
+Please think like a senior engineer who's seen production bugs like this before. What would you recommend?
+
+## File Locations for Review
+
+- Main service: `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/services/CombatService.ts`
+- Repository: `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/repositories/CombatRepository.ts`
+- Controller: `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/controllers/CombatController.ts`
+
+Read these files if you need to see the full implementation. Focus on the combat completion flow.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

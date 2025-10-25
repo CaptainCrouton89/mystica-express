@@ -1,0 +1,18 @@
+**Assumption A-6**: EquipmentRepository correctly passes parameters to database RPC function
+
+**Context**: User reports weapon items being equipped to armor slots. Need to validate what parameters are sent to the database RPC.
+
+**Investigation Target**: 
+- File: `mystica-express/src/repositories/EquipmentRepository.ts` around lines 333-339
+- Focus: Quote the exact `equipItemAtomic` RPC call
+- Validate: What parameters are passed to `equip_item` RPC function?
+- Check: How is slot name determined and passed to database?
+
+**Expected Evidence**: 
+- Exact RPC call with parameter mapping
+- How slot name is derived or passed through
+- Any parameter transformation before database call
+
+**Scope**: trace-only - find and quote the RPC call code
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

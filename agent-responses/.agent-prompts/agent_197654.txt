@@ -1,0 +1,36 @@
+Add `image_url: null` field to all Location mock objects in test files to fix TypeScript compilation errors.
+
+The migration added an `image_url` field to the locations table, and now all Location objects in tests need this field.
+
+Files to update:
+- tests/unit/repositories/LocationRepository.test.ts
+- tests/unit/services/CombatService.test.ts  
+- tests/unit/services/LocationService.repository.test.ts
+
+Pattern to follow:
+Add `image_url: null,` after the `country_code` field in all Location mock objects.
+
+Example:
+```typescript
+const mockLocation: Location = {
+  id: 'loc1',
+  name: 'Test Location',
+  lat: 37.7749,
+  lng: -122.4194,
+  location_type: 'restaurant',
+  state_code: 'CA',
+  country_code: 'US',
+  image_url: null,  // ADD THIS LINE
+  created_at: '2024-01-01T00:00:00Z'
+};
+```
+
+Also update LocationWithDistance objects (they don't have created_at but need image_url).
+
+After updates, verify compilation with: `pnpm --filter mystica-express build`
+
+Exit criteria:
+- All Location mock objects have image_url field
+- TypeScript compilation succeeds with no errors
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

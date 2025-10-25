@@ -1,0 +1,71 @@
+You are implementing Task 1 of the loot enrichment plan: Add MaterialRepository.findByIds() method.
+
+## Task Specification
+
+**File:** `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/repositories/MaterialRepository.ts`
+
+**Location:** Add method after findMaterialById() (after line 65, before line 67)
+
+**Method to Implement:**
+```typescript
+async findByIds(ids: string[]): Promise<Material[]>
+```
+
+## Implementation Details
+
+1. **Empty array check:** If ids.length === 0, return empty array (no query)
+
+2. **Query:** 
+   ```typescript
+   .from('materials').select('*').in('id', ids)
+   ```
+
+3. **Error handling:** throw mapSupabaseError(error) on failure
+
+4. **Return:** (data || []) as Material[]
+
+5. **JSDoc comment:**
+   ```typescript
+   /**
+    * Find multiple materials by IDs
+    * Used for batch fetching during loot generation
+    *
+    * @param ids - Array of material IDs to find
+    * @returns Array of materials found (may be fewer than requested if some IDs don't exist)
+    * @throws DatabaseError on query failure
+    */
+   ```
+
+6. **Pattern to follow:** Use EXACT same pattern as ItemTypeRepository.findByIds() which is at:
+   `/Users/silasrhyneer/Code/new-mystica/mystica-express/src/repositories/ItemTypeRepository.ts` lines 65-80
+
+## Reference Implementation (ItemTypeRepository)
+
+Read ItemTypeRepository.ts lines 65-80 to see the exact pattern you should follow:
+- Import statement style
+- Error handling pattern
+- Return type handling
+- JSDoc style
+
+## Requirements
+
+- Follow existing code style and patterns exactly
+- No breaking changes
+- Maintain consistency with ItemTypeRepository.findByIds()
+- Material type is imported from api.types.ts
+- mapSupabaseError is imported from utils/errors.js
+- Must handle empty array case
+- Must throw on query failure
+
+## Result
+
+After implementation:
+1. Build must pass: `pnpm build`
+2. Method must be callable from CombatService as `await this.materialRepository.findByIds(materialIds)`
+3. Return type must be `Material[]` matching api.types.ts
+
+Do NOT modify CombatService yet - just implement this repository method. Other agents will handle the service refactoring.
+
+Reference context: @agent-responses/agent_004070.md contains the full plan.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

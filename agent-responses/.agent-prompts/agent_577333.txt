@@ -1,0 +1,16 @@
+Fix the equipment integration test to use extractResponseData helper for response wrapper middleware.
+
+**Problem:**
+Tests at `mystica-express/tests/integration/equipment.test.ts:172,235,354,462` are failing because they access `response.body.equipment_count` directly instead of using `extractResponseData()` helper.
+
+**Task:**
+1. Read `mystica-express/tests/integration/equipment.test.ts` to find all direct `response.body` accesses
+2. Check if `extractResponseData` is already imported (it should be from `../helpers/assertions.js`)
+3. Update all instances of `response.body.equipment_count` to `extractResponseData(response.body).equipment_count`
+4. Look for any other similar direct accesses like `response.body.total_stats` and fix them consistently
+5. Note that the file already uses `extractResponseData(response.body).slots` and `extractResponseData(response.body).total_stats` in some places, so make sure all accesses are consistent
+6. Verify the fix by running: `pnpm test tests/integration/equipment.test.ts`
+
+Return the test results showing all tests pass.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

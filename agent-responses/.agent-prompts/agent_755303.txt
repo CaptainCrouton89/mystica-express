@@ -1,0 +1,103 @@
+Fix the inventory API endpoint to match the frontend's expected response format.
+
+## Problem
+The backend `/api/v1/inventory` endpoint returns field names that don't match what the Swift frontend expects, causing decoding failures and empty inventory screens.
+
+## Backend Current Response (InventoryService.ts:132-152)
+```typescript
+{
+  id: item.id,
+  name: item.item_type.name,  // ❌ Frontend expects "base_type"
+  item_type_id: item.item_type_id,
+  category: item.item_type.category,
+  level: item.level,
+  rarity: item.item_type.rarity,
+  applied_materials: item.materials || [],
+  materials: item.materials || [],  // For compatibility
+  is_styled: item.is_styled,
+  current_stats: this.calculateItemStatsWithMaterials(item),  // ❌ Frontend expects "computed_stats"
+  is_equipped: equippedItemIds.has(item.id),
+  equipped_slot: equippedSlotMap.get(item.id) || null,
+  generated_image_url: item.generated_image_url || this.getDefaultImage(item)
+  // ❌ Missing: craft_count
+}
+```
+
+## Frontend Expected Format (Inventory.swift:20-48)
+```swift
+struct EnhancedPlayerItem: APIModel {
+    let id: String
+    let baseType: String  // CodingKey: "base_type"
+    let level: Int
+    let appliedMaterials: [ItemMaterialApplication]  // CodingKey: "applied_materials"
+    let computedStats: ItemStats  // CodingKey: "computed_stats"
+    let materialComboHash: String?  // CodingKey: "material_combo_hash"
+    let generatedImageUrl: String?  // CodingKey: "generated_image_url"
+    let imageGenerationStatus: ImageGenerationStatus?  // CodingKey: "image_generation_status"
+    let craftCount: Int  // CodingKey: "craft_count"
+    let isStyled: Bool  // CodingKey: "is_styled"
+    let isEquipped: Bool  // CodingKey: "is_equipped"
+    let equippedSlot: String?  // CodingKey: "equipped_slot"
+}
+```
+
+## Required Changes
+
+### File: `mystica-express/src/services/InventoryService.ts`
+
+1. **Line 134**: Change `name:` to `base_type:`
+   ```typescript
+   base_type: item.item_type.name,  // Fixed: was "name"
+   ```
+
+2. **Line 144**: Change `current_stats:` to `computed_stats:`
+   ```typescript
+   computed_stats: this.calculateItemStatsWithMaterials(item),  // Fixed: was "current_stats"
+   ```
+
+3. **After line 147**: Add missing `craft_count` field
+   ```typescript
+   craft_count: 0,  // TODO: Implement craft count tracking when image cache is queried
+   ```
+
+4. **After line 134**: Add missing `material_combo_hash` and `image_generation_status`
+   ```typescript
+   material_combo_hash: item.material_combo_hash || null,
+   image_generation_status: item.image_generation_status || null,
+   ```
+
+### Expected Result
+After changes, the response should be:
+```typescript
+{
+  id: item.id,
+  base_type: item.item_type.name,  // ✅ Fixed
+  level: item.level,
+  applied_materials: item.materials || [],
+  computed_stats: this.calculateItemStatsWithMaterials(item),  // ✅ Fixed
+  material_combo_hash: item.material_combo_hash || null,  // ✅ Added
+  generated_image_url: item.generated_image_url || this.getDefaultImage(item),
+  image_generation_status: item.image_generation_status || null,  // ✅ Added
+  craft_count: 0,  // ✅ Added
+  is_styled: item.is_styled,
+  is_equipped: equippedItemIds.has(item.id),
+  equipped_slot: equippedSlotMap.get(item.id) || null
+}
+```
+
+## Files to Modify
+- `mystica-express/src/services/InventoryService.ts` (lines 132-152 in `getPlayerInventory` method)
+
+## Validation
+After making changes:
+1. Restart the dev server (`pnpm dev`)
+2. The frontend inventory screen should now display items correctly
+3. Check that decoding no longer fails silently
+
+## Important Notes
+- DO NOT change the frontend - it's already correct
+- DO NOT modify the database schema
+- The `craft_count` should eventually query `ItemImageCache` table by `material_combo_hash`, but for now default to 0
+- Keep backward compatibility by keeping the `materials` field alongside `applied_materials`
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

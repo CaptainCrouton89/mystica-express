@@ -1,0 +1,19 @@
+Investigate the combat reward system in the New Mystica Express backend to understand why materials and items aren't persisting to the player's inventory after victory.
+
+Focus on:
+1. How loot is generated in CombatService.generateLoot() and generateLootFallback()
+2. Whether generated loot is being persisted to the database (check completeCombatInternal method)
+3. Check if MaterialRepository.createStack() and ItemRepository.create() are being called during reward distribution
+4. Look at the test file tests/unit/services/CombatService.test.ts to understand what the expected reward structure should be (search for "rewards" property references)
+5. Check LocationRepository for any issues with LootDrop type that's causing compilation errors (material_name, item_type_name properties)
+6. Understand the complete flow: victory → completeCombat → completeCombatInternal → generateLoot → persist to DB
+
+Search for:
+- Where rewards are generated vs where they're persisted
+- Any TODO or FIXME comments about reward persistence
+- How MaterialStacks and PlayerItems tables should be populated
+- What the CombatRewards interface actually contains vs what the tests expect
+
+Return a detailed analysis of the problem and what needs to be fixed, including file paths and line numbers.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

@@ -1,0 +1,18 @@
+**Assumption A-3**: Equipment controller correctly processes equip requests and maps categories to slots
+
+**Context**: User reports weapon items being equipped to armor slots. Need to validate the controller's processing logic.
+
+**Investigation Target**: 
+- File: `mystica-express/src/controllers/EquipmentController.ts` around lines 63-87
+- Focus: Quote the `/equipment/equip` endpoint handler
+- Validate: How does controller process equip requests?
+- Check: Does controller validate category-slot compatibility?
+
+**Expected Evidence**: 
+- Exact controller method for equipment requests
+- Parameter extraction and validation logic
+- Any category-to-slot mapping or validation
+
+**Scope**: trace-only - find and quote the controller endpoint code
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

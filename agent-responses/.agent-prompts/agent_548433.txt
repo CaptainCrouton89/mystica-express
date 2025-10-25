@@ -1,0 +1,57 @@
+**Task T9: Frontend UI Display Updates (4 components)**
+
+Update all SwiftUI components displaying item names to use item.name instead of item.baseType.capitalized. Add text truncation for long names. Add description display where appropriate.
+
+**Files to modify:**
+- `New-Mystica/New-Mystica/Views/Inventory/ItemRow.swift`
+- `New-Mystica/New-Mystica/Views/Equipment/ItemDetailModal.swift`
+- `New-Mystica/New-Mystica/Views/Inventory/InventoryItemDetailModal.swift`
+- `New-Mystica/New-Mystica/Views/Crafting/ItemSlotSelector.swift`
+
+**Dependencies:**
+- T8: PlayerItem model updated with name/description properties
+
+**Target locations identified:**
+- **ItemRow.swift:74** - inventory lists
+- **ItemDetailModal.swift:126** - equipment details
+- **InventoryItemDetailModal.swift:47** - inventory details
+- **ItemSlotSelector.swift:91** - crafting interface
+
+**Requirements:**
+- All 4 components updated to display item.name
+- Text truncation added for very long names (lineLimit or truncationMode)
+- Description displayed in detail modals (ItemDetailModal, InventoryItemDetailModal)
+- UI handles nil/empty values gracefully
+- No layout breaking for long text
+
+**Exit criteria:**
+- All 4 components updated to display item.name
+- Text truncation added for very long names (lineLimit or truncationMode)
+- Description displayed in detail modals (ItemDetailModal, InventoryItemDetailModal)
+- UI handles nil/empty values gracefully
+- No layout breaking for long text
+
+**Context:**
+The investigation found these exact line numbers where `item.baseType.capitalized` is used. Replace with `item.name` and add description display in the detail modals.
+
+**Pattern to implement:**
+```swift
+// Before:
+Text(item.baseType.capitalized)
+
+// After:
+Text(item.name)
+    .lineLimit(2) // Prevent UI breaking
+    .truncationMode(.tail)
+
+// In detail modals, also add:
+if let description = item.description {
+    Text(description)
+        .font(.body)
+        .foregroundColor(.secondary)
+}
+```
+
+Read each file first to understand the current layout and then make the updates.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

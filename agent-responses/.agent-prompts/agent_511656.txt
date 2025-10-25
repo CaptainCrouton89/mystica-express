@@ -1,0 +1,30 @@
+Investigate the correct implementation for the `combat_rating` database function by examining the feature specs and data plan documentation.
+
+**Context:**
+I just created a `combat_rating` function with this formula:
+```sql
+rating = (atk^1.5 + def^1.5) * (hp^0.5)
+```
+
+But the user wants to verify this is the correct formula based on the project documentation.
+
+**Investigation Tasks:**
+1. Read `docs/feature-specs/` to find combat system specifications
+2. Read `docs/data-plan.md` for combat rating calculations
+3. Search for any references to "combat rating", "power law", "rating formula", or similar terms
+4. Look for any existing database migrations that might define this function
+5. Check if there's a different formula or calculation method specified
+
+**Files to examine:**
+- `docs/feature-specs/combat-*.md` (if exists)
+- `docs/data-plan.md`
+- Any combat-related feature specs
+- Database migrations in `mystica-express/migrations/`
+
+**Return:**
+- The correct combat rating formula from documentation
+- Any constraints or special cases
+- Whether the current implementation `(atk^1.5 + def^1.5) * (hp^0.5)` is correct
+- If incorrect, provide the correct formula
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

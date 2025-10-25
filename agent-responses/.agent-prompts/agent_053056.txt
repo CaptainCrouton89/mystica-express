@@ -1,0 +1,18 @@
+**Assumption A-5**: EquipmentRepository correctly validates slot-category compatibility
+
+**Context**: User reports weapon items being equipped to armor slots. Need to validate the repository's slot compatibility rules.
+
+**Investigation Target**: 
+- File: `mystica-express/src/repositories/EquipmentRepository.ts` around lines 681-694
+- Focus: Quote the exact `validateSlotCompatibility()` method
+- Validate: What categories are allowed for each slot?
+- Check: Are weapon categories restricted to weapon/offhand slots?
+
+**Expected Evidence**: 
+- Exact slot-category validation rules
+- Allowed categories for weapon, armor, and other slots
+- Any validation errors or restrictions
+
+**Scope**: trace-only - find and quote the slot validation method
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

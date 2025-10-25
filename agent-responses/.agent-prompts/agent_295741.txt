@@ -1,0 +1,26 @@
+Implement the refactoring of CombatService and MaterialService to:
+
+1. Use zone-based damage calculation
+2. Simulate enemy zone hits using accuracy
+3. Generate loot directly from enemyloot table
+4. Apply style inheritance for materials
+5. Calculate gold/XP using tier multipliers
+6. Scale HP only with tier, not combat level
+
+Must pass TypeScript compile checks for the modified files.
+
+Specific requirements:
+- startCombat: Calculate realized stats using StatsService
+- executeAttack/executeDefense: Use zone mechanics 
+- completeCombat: Generate loot with direct enemyloot query
+- Use StatsService.simulateEnemyZoneHit for zone determination
+- Apply style inheritance in loot generation
+- Use tier multipliers for gold/XP calculations
+
+Critical steps:
+1. Modify generateLoot method to query enemyloot table
+2. Implement zone hit probability in attack/defense methods
+3. Ensure style_id is inherited from enemy during loot generation
+4. Update gold/XP calculations to use tier multipliers
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

@@ -1,0 +1,21 @@
+Remove the seedream provider and fix ImageGenerationService tests to only test Gemini provider without reference images.
+
+**Problem:**
+ImageGenerationService tests are failing because they expect `image_input` to be included for the Gemini provider, but it's not implemented (see ImageGenerationService.ts:373-374 TODO comment). The `image_input` feature is only implemented for seedream provider.
+
+**Task:**
+1. Read `mystica-express/src/services/ImageGenerationService.ts` to understand both providers
+2. Remove all seedream provider code (`bytedance/seedream-4`):
+   - Remove from the provider selection logic
+   - Remove the else branch at lines 376-385
+   - Simplify to only support Gemini provider
+3. Update tests to not expect `image_input` parameter:
+   - Read and update `mystica-express/tests/unit/services/ImageGenerationService.test.ts`
+   - Read and update `mystica-express/tests/unit/services/ImageGenerationService.minimal.test.ts`
+   - Remove or modify tests that check for reference images (`image_input`)
+   - Update tests to only validate Gemini provider behavior
+4. Verify the fix by running: `pnpm test tests/unit/services/ImageGenerationService`
+
+Return the test results showing the fix works.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

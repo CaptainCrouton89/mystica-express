@@ -1,0 +1,215 @@
+# Task T3: Refactor CombatService and MaterialService for New Stat System
+
+Implement Task 3 from the enemy stat refactor plan. This is a complex multi-file implementation that depends on T1 and T2 completion.
+
+**Plan Reference:** @docs/plans/enemy-stat-refactor/plan.yaml
+
+## Critical Requirement
+
+**Ensure NO TypeScript type errors in the files you modify.** If you encounter type errors, fix them immediately. Do not leave any TypeScript compilation errors in:
+- mystica-express/src/services/CombatService.ts
+- mystica-express/src/services/MaterialService.ts
+
+Any type errors should be resolved before considering the task complete.
+
+## Files to Modify
+
+1. **mystica-express/src/services/CombatService.ts** - Refactor combat flow to use new stat system, zone mechanics, and direct loot queries
+2. **mystica-express/src/services/MaterialService.ts** - Add style_id support to material instance creation
+
+## Success Criteria
+
+✓ CombatService.startCombat calculates realized stats (not absolute), no loot pool queries
+✓ CombatService.executeAttack simulates zone hits and applies zone/crit modifiers
+✓ CombatService.executeDefense uses zone modifiers for damage reduction
+✓ CombatService.completeCombat generates loot from enemyloot table with style inheritance
+✓ CombatService.generateLoot queries enemyloot directly, applies style_id = enemy.style_id
+✓ MaterialService.applyMaterial works with style_id in MaterialInstance creation
+✓ Material combo hash includes style_ids (sorted order)
+✓ is_styled flag set correctly (ANY applied material with style_id !== 'normal')
+✓ Gold = 10 × level × tier.gold_multiplier, XP = 20 × level × tier.xp_multiplier
+✓ HP only scales with tier, not combat level
+✓ No loot pool references remain
+✓ **NO TypeScript type errors in modified files**
+
+## Detailed Requirements
+
+### CombatService.startCombat Updates
+
+```typescript
+async startCombat(
+  userId: string,
+  enemyTypeId: string,
+  locationId: string
+): Promise<CombatSession>
+```
+
+Changes:
+- Fetch enemy with `getEnemyTypeWithTier` (joins with tiers)
+- Get combat_level from user.avg_item_level (not from database, calculate in service)
+- Call `StatsService.calculateEnemyRealizedStats(enemy, combat_level, tier)` to compute:
+  - base_atk = atk_power_normalized × 8 × combat_level × tier.difficulty_multiplier × 10
+  - base_def = def_power_normalized × 8 × combat_level × tier.difficulty_multiplier × 10
+  - hp = base_hp × tier.difficulty_multiplier (NO combat_level)
+- Store realized stats in CombatSession (not normalized stats)
+- **Remove:** All loot pool queries and applied_loot_pools assignment
+- Create CombatSession with enemy_type_id, location_id, combat_level, realized_enemy_stats
+
+### CombatService.executeAttack Updates
+
+```typescript
+async executeAttack(
+  sessionId: string,
+  playerZone: 1 | 2 | 3 | 4 | 5,
+  playerDamage: number
+): Promise<{ playerDamage: ZoneHitInfo; enemyDamage: ZoneHitInfo; ... }>
+```
+
+Changes:
+- Fetch current session and enemy data
+- Simulate enemy zone hit: `zone = StatsService.simulateEnemyZoneHit(enemy.atk_accuracy_normalized)`
+- Get enemy crit multiplier: `critMult = StatsService.getCritMultiplier(zone)`
+- Calculate enemy final damage: `base_atk × zoneMultipliers[zone-1] × critMult`
+- Get player crit multiplier: `playerCritMult = StatsService.getCritMultiplier(playerZone)`
+- Calculate player final damage: `player_damage_input × zoneMultipliers[playerZone-1] × playerCritMult`
+- Apply damage to both combatants
+- Return both player_damage and enemy_damage with full ZoneHitInfo including crit_occurred and crit_multiplier
+
+### CombatService.executeDefense Updates
+
+```typescript
+async executeDefense(
+  sessionId: string,
+  playerDefenseZone: 1 | 2 | 3 | 4 | 5
+): Promise<{ playerDamage: ZoneHitInfo; enemyDamage: ZoneHitInfo; ... }>
+```
+
+Changes:
+- Fetch current session
+- Apply player defense zone multiplier to player_base_def
+- Simulate enemy zone hit using accuracy
+- Apply enemy zone multiplier to base_atk
+- Calculate damage reduction: `incomingDamage × (1 - (player_base_def / (player_base_def + enemy_base_atk)))`
+- Apply zone and crit modifiers
+- Return updated HP values
+
+### CombatService.generateLoot Method (NEW)
+
+```typescript
+async generateLoot(
+  enemyTypeId: string,
+  enemyStyleId: string,
+  combatLevel: number,
+  tierMultipliers: { gold_multiplier: number; xp_multiplier: number }
+): Promise<CombatRewards>
+```
+
+Implementation:
+1. **Material Drops:**
+   - Query `getEnemyLootTable(enemyTypeId, 'material')` from EnemyRepository
+   - Weighted random selection from drop_weight values
+   - Apply style inheritance: `materialStyleId = enemy.style_id !== 'normal' ? enemy.style_id : 'normal'`
+   - Create MaterialStack with (material_id, style_id, quantity=1)
+
+2. **Item Drops:**
+   - Query `getEnemyLootTable(enemyTypeId, 'item_type')`
+   - Weighted random selection with failure case (no item drops)
+   - Create Item if selected (or return empty array if no drop)
+
+3. **Gold Reward:**
+   - Formula: `Math.floor(10 × combatLevel × tierMultipliers.gold_multiplier)`
+   - Example: level 10, tier 1.0 → 100 gold
+
+4. **XP Reward:**
+   - Formula: `Math.floor(20 × combatLevel × tierMultipliers.xp_multiplier)`
+   - Example: level 10, tier 1.0 → 200 XP
+
+5. **Return CombatRewards:**
+   ```typescript
+   {
+     materials: [{ material_id, style_id, quantity: 1 }],
+     items: selectedItem ? [{ item_type_id, level, rarity }] : [],
+     gold,
+     xp
+   }
+   ```
+
+### CombatService.completeCombat Updates
+
+Changes:
+- Remove loot pool references
+- Call `generateLoot(enemyTypeId, enemyStyleId, combatLevel, tierMultipliers)`
+- Apply rewards to user (add materials, items, gold, xp)
+- Update CombatSession with outcome='victory' and rewards
+
+### MaterialService.applyMaterial Updates
+
+Changes:
+- When applying material to item, include style_id in MaterialInstance
+- Update material combo hash calculation to include style_ids (sorted order)
+- Set `is_styled = true` if ANY applied material has style_id !== 'normal'
+- Pass all style_ids to image generation for visual consistency
+
+### Material Combo Hash Update
+
+```typescript
+// Old: hash = md5(materialIds.sort().join(','))
+// New: hash = md5(
+//   materialIds.map((id, idx) => `${id}:${styleIds[idx]}`)
+//     .sort()
+//     .join(',')
+// )
+```
+
+## Type References
+
+- Use EnemyType, Tier from database.types.ts
+- Use ZoneDistribution, ZoneHitInfo, EnemyRealizedStats from combat.types.ts
+- Use CombatRewards, MaterialStack from existing types
+
+## Error Handling
+
+- Fail fast: throw errors immediately, no fallbacks
+- Descriptive error messages for all throws
+- Validate zone values are 1-5
+- Validate crit multipliers are > 0
+
+## TypeScript Compilation
+
+**CRITICAL:** After implementation, run:
+```bash
+cd mystica-express && pnpm build
+```
+
+If there are ANY TypeScript errors in CombatService.ts or MaterialService.ts, fix them immediately. Do not consider the task complete with compilation errors.
+
+## Patterns to Follow
+
+- Use existing service patterns (dependency injection, error handling)
+- All async operations should be awaited
+- Use weighted random selection for loot (existing utility if available, or implement simple version)
+- Preserve existing method signatures where possible, update types only
+
+## References
+
+- EnemyStatRefactor.md (stat formulas and loot generation flow)
+- plan.yaml (detailed requirements by method)
+- T1 types (ZoneHitInfo, EnemyRealizedStats, etc.)
+- T2 repository methods (getEnemyTypeWithTier, getEnemyLootTable)
+
+## Deliverables
+
+- Modified: mystica-express/src/services/CombatService.ts
+- Modified: mystica-express/src/services/MaterialService.ts
+- startCombat calculates realized stats, no loot pools
+- executeAttack simulates zone hits, applies modifiers
+- executeDefense applies zone modifiers to defense
+- generateLoot queries enemyloot table, applies style inheritance
+- completeCombat uses generateLoot, no loot pool references
+- applyMaterial works with style_id
+- Material combo hash includes style_ids
+- Gold = 10 × level × tier, XP = 20 × level × tier
+- HP scales only by tier, not level
+- **Build passes with NO TypeScript errors**
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

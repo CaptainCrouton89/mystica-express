@@ -1,0 +1,27 @@
+Fix the EquipmentRepository test column name mismatch and implementation bug.
+
+**Problem:**
+Test at `mystica-express/tests/unit/repositories/EquipmentRepository.test.ts:543` is failing because mock column names don't match what the implementation reads.
+
+**Mock returns (line 548-552):**
+```typescript
+{ total_atk_power: 25, total_atk_accuracy: 18, total_def_power: 15, total_def_accuracy: 12 }
+```
+
+**Implementation reads (EquipmentRepository.ts:513-520):**
+```typescript
+{ atk: 25, acc: 18, def: 15, acc: 12 }
+```
+
+**Additional bug:** Lines 486 and 519 both use the same `acc` field for `defAccuracy`, which looks wrong.
+
+**Task:**
+1. Read `mystica-express/tests/unit/repositories/EquipmentRepository.test.ts` around line 543-568
+2. Read `mystica-express/src/repositories/EquipmentRepository.ts` around line 467-520
+3. Update the test mock at line 548-552 to use the correct column names: `atk`, `acc`, `def` (and determine what the 4th column should be for defAccuracy - check the database view schema if needed)
+4. Fix the implementation bug where both `atkAccuracy` and `defAccuracy` use the same `acc` field (lines 484-486 and 517-519)
+5. Verify the fix by running: `pnpm test tests/unit/repositories/EquipmentRepository.test.ts`
+
+Return the test results showing the fix works.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

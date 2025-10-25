@@ -1,0 +1,85 @@
+You are creating an implementation plan to enrich combat loot rewards with complete item/material data for the victory screen.
+
+## Problem Context
+
+**Current State:**
+Victory screen displays rewards but only with minimal data:
+- Item name, category, rarity, style_name
+- Material name, style_name
+- Missing: descriptions, stat modifiers, appearance data, full stats
+
+**User Requirement:**
+Victory screen should show complete item/material cards with all available data. NO FALLBACKS - throw errors if data is missing.
+
+## Current Code Structure
+
+**CombatService.ts (generateLootFallback method - lines 1495-1570)**
+- Currently returns partial ItemDrop objects with only: name, category, rarity, style_id, style_name
+- ItemTypeRepository.findByIds() already exists (can batch fetch items)
+- MaterialRepository does NOT have findByIds() (only has findMaterialById for single queries)
+
+**ItemTypeRepository.ts**
+- Has working `findByIds(ids: string[])` method
+- Selects '*' (all fields including base_stats_normalized, appearance_data, description)
+- Proper error handling with thrown errors
+
+**MaterialRepository.ts**
+- Has `findMaterialById(id: string)` for single lookups only
+- No batch method exists
+- Could add `findByIds(ids: string[])` following same pattern as ItemTypeRepository
+
+**Database Schema:**
+- `itemtypes` table: id, name, category, base_stats_normalized, rarity, description, appearance_data
+- `materials` table: id, name, stat_modifiers, base_drop_weight, description
+
+**VictoryView.swift (frontend)**
+- Currently displays items with: name, styleName, rarity (shows as icon color)
+- Has space for descriptions and additional data in card layout
+- Currently shows placeholder icon for all items
+
+## Implementation Requirements
+
+1. **Add MaterialRepository.findByIds()**
+   - Match ItemTypeRepository pattern exactly
+   - Batch fetch materials by ID list
+   - Select all fields: id, name, description, stat_modifiers
+   - Throw error if any material ID not found (no silent failures)
+
+2. **Update CombatService.generateLootFallback()**
+   - Fetch full ItemType data using itemTypeRepository.findByIds()
+   - Fetch full Material data using materialRepository.findByIds() (new method)
+   - Build lookup maps for both
+   - Throw errors on missing data (no fallbacks, no placeholders)
+   - Return enriched reward objects with all fields
+
+3. **Enrich Return Objects**
+   - Items should return: item_type_id, name, category, rarity, description, base_stats, appearance_data, style_id, style_name
+   - Materials should return: material_id, name, description, stat_modifiers, style_id, style_name
+   - No undefined fields - include actual values or throw error
+
+4. **Architecture Constraints**
+   - Keep repository pattern - no direct Supabase queries in services
+   - Consistency - both ItemType and Material use same batch pattern
+   - Error-first - throw errors on data integrity issues
+   - Type safety - proper TypeScript types
+
+## Files That Need Changes
+
+1. `src/repositories/MaterialRepository.ts` - Add findByIds() method
+2. `src/services/CombatService.ts` - Update generateLootFallback() to use repositories and include all fields in returns
+
+## Output Expected
+
+Detailed implementation plan with:
+- Step-by-step breakdown of MaterialRepository.findByIds() implementation
+- Refactoring strategy for CombatService.generateLootFallback()
+- Data structure for enriched return objects
+- Error handling approach (throw errors, no fallbacks)
+- Any type definitions that need updating
+- Order of implementation (what to do first)
+
+Reference specific file paths and line numbers in your analysis.
+
+Do NOT write code. Just create the comprehensive plan.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

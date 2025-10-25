@@ -1,0 +1,22 @@
+The backend API response structure for POST /api/v1/items/{id}/materials/apply has been updated to fix a decoding issue in the iOS app.
+
+The item response now includes these fields (mapped to iOS EnhancedPlayerItem):
+- base_type, item_type_id, category, level, rarity
+- applied_materials, materials (arrays with material details)
+- computed_stats, material_combo_hash, generated_image_url
+- image_generation_status, craft_count, is_styled, is_equipped, equipped_slot
+
+Previously it was returning: id, user_id, item_type_id, level, base_stats, current_stats, is_styled, material_combo_hash, image_url, materials, item_type, created_at, updated_at
+
+Please check:
+1. Is there an OpenAPI spec or API contract file (docs/api-contracts or similar) that documents the POST /api/v1/items/{id}/materials/apply endpoint response?
+2. Are there any feature specifications or API documentation that describe the item response structure?
+3. If found, what fields are currently documented for this endpoint?
+4. Should these docs be updated to reflect the new response structure?
+
+Return a concise summary of:
+- Whether API contracts exist and location
+- Current documented fields
+- Recommendation on whether to update (yes/no) and what specifically needs changing
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

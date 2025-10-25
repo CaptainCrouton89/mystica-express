@@ -1,0 +1,47 @@
+**Task T8: Frontend PlayerItem Model Update**
+
+Update Swift PlayerItem model to include name and description properties. Update CodingKeys for API decoding. Add backward compatibility logic for transition period.
+
+**Files to modify:**
+- `New-Mystica/New-Mystica/Models/Item.swift`
+
+**Dependencies:**
+- T7: Backend build validation (compilation successful, tests being fixed in background)
+
+**Requirements:**
+- PlayerItem struct includes name: String and description: String? properties
+- CodingKeys enum maps to backend snake_case fields
+- Decoding handles missing fields gracefully (fallback to baseType if needed)
+- EnhancedPlayerItem updated if applicable
+
+**Exit criteria:**
+- PlayerItem struct includes name: String and description: String? properties
+- CodingKeys enum maps to backend snake_case fields
+- Decoding handles missing fields gracefully (fallback to baseType if needed)
+- EnhancedPlayerItem updated if applicable
+
+**Context:**
+The backend API now returns `name` and `description` fields in item responses (T6 completed). The frontend needs to decode these fields and use them instead of the current `baseType.capitalized` pattern.
+
+**Pattern to implement:**
+```swift
+struct PlayerItem {
+    let name: String           // NEW: Custom instance name
+    let description: String?   // NEW: Custom instance description  
+    let baseType: String       // KEEP: For backward compatibility
+    // ... existing fields
+    
+    enum CodingKeys: String, CodingKey {
+        case name = "name"
+        case description = "description"
+        case baseType = "base_type"
+        // ... existing keys
+    }
+    
+    // Add fallback decoding logic if needed
+}
+```
+
+Read the current model first to understand the structure and existing patterns.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "sql": {
+      "command": "node",
+      "args": ["/Users/silasrhyneer/Code/MCP/sql/dist/index.js"],
+      "env": {
+        "SUPABASE_CONNECTION_STRING": "postgresql://postgres:ZRT*ghb2cjk2bha5gmw@db.kofvwxutsmxdszycvluc.supabase.co:5432/postgres",
+        "SUPABASE_URL": "https://kofvwxutsmxdszycvluc.supabase.co",
+        "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvZnZ3eHV0c214ZHN6eWN2bHVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5OTk3NzksImV4cCI6MjA3NjU3NTc3OX0.CWy729Te-iO8_NAW46xlUPN6zBSR01htbGOJvPQ2Z_E",
+        "SUPABASE_SERVICE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvZnZ3eHV0c214ZHN6eWN2bHVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDk5OTc3OSwiZXhwIjoyMDc2NTc1Nzc5fQ.U-WapHpDILWAtXBCfw850fer2Bj5mrdKo22dTKAxtY4",
+        "ENABLED_TOOLS": "execute-sql,describe-table,describe-functions,list-tables,get-function-definition"
+      }
+    }
+  }
+}

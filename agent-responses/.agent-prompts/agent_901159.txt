@@ -1,0 +1,38 @@
+Fix the bug where items have `current_stats: null` after applying materials.
+
+## Problem
+In `MaterialService.applyMaterial()` (mystica-express/src/services/MaterialService.ts around line 194), after applying a material to an item, the item's `current_stats` are never calculated/updated. Items are created with `current_stats: null` and this persists, causing the API to return `computed_stats: {}` which breaks the Swift client.
+
+## Required Fix
+After line 194 (`await this.itemRepository.updateImageData(...)`), add stats calculation and update:
+
+1. Fetch the item type's `base_stats_normalized`
+2. Fetch all applied materials with their `stat_modifiers`
+3. Calculate the item's stats using StatsService (similar to how ItemService or EquipmentService does it)
+4. Update the item's `current_stats` in the database
+
+## Reference Patterns
+Look at these existing stat calculation patterns:
+- `src/services/ItemService.ts` line 153: `statsService.computeItemStatsForLevel()`
+- `src/services/EquipmentService.ts` lines 287-296: Stats calculation with materials
+- `src/repositories/ItemRepository.ts` line 365: `updateStats()` method
+
+## Implementation Steps
+1. Read MaterialService.ts to understand the applyMaterial flow
+2. Read StatsService.ts to find the correct method for computing stats
+3. After updating image data (line 194), add:
+   - Fetch item type's base_stats_normalized (might already have it from `item` object)
+   - Get all applied materials (you just fetched this in `allMaterials` at line 157)
+   - Call StatsService to compute stats
+   - Update item's current_stats via `itemRepository.updateStats()` or similar
+4. Test that the fix works by checking the updated code logic
+
+## Expected Outcome
+After the fix, when materials are applied:
+- `current_stats` should contain a proper Stats object with all 4 fields
+- The API response should have `computed_stats: {atkPower: X, atkAccuracy: Y, defPower: Z, defAccuracy: W}`
+- No more empty `{}` objects for stats
+
+Write the code fix following existing patterns in the codebase.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

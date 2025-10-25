@@ -1,0 +1,18 @@
+**Assumption A-1**: Frontend EquipmentViewModel correctly sends equipment requests to backend API
+
+**Context**: User reports weapon items being equipped to armor slots. Need to validate the frontend API call structure.
+
+**Investigation Target**: 
+- File: `../New-Mystica/New-Mystica/ViewModels/EquipmentViewModel.swift` around lines 48-58
+- Focus: Quote the exact `equipItem` method
+- Validate: What parameters are sent to `/api/v1/equipment/equip`?
+- Check: Does frontend send slot name or rely on backend auto-detection?
+
+**Expected Evidence**: 
+- Exact API request structure from Swift code
+- Parameter names and values being sent
+- Any slot-related logic in frontend
+
+**Scope**: trace-only - find and quote the frontend API call code
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

@@ -1,0 +1,24 @@
+Fix the MaterialRepository test mock data structure issue.
+
+**Problem:**
+Test at `mystica-express/tests/unit/repositories/MaterialRepository.test.ts:574` is failing because the mock RPC response structure doesn't match what the implementation expects.
+
+**Current mock (line 571):**
+```typescript
+mockClient.rpc.mockResolvedValue({ data: rpcResult, error: null });
+```
+
+**Expected by implementation at MaterialRepository.ts:626:**
+```typescript
+{ data: { success: true, data: {...}, error_code, message }, error: null }
+```
+
+**Task:**
+1. Read `mystica-express/tests/unit/repositories/MaterialRepository.test.ts` around line 560-587
+2. Read `mystica-express/src/repositories/MaterialRepository.ts` around line 615-631 to understand the expected structure
+3. Update the mock at line 571 to wrap `rpcResult` in the correct envelope structure: `{ success: true, data: {...}, error_code: null, message: null }`
+4. Verify the fix by running: `pnpm test tests/unit/repositories/MaterialRepository.test.ts`
+
+Return the test results showing the fix works.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]

@@ -1,0 +1,65 @@
+## Task: Validate Equipment Category-to-Slot Mapping Flow
+
+**Problem**: User reports that equipping items in weapon slots causes them to go into armor slots instead. Frontend filtering was fixed but the issue persists.
+
+## Investigation Requirements
+
+Please orchestrate a comprehensive validation of the equipment flow:
+
+### 1. Backend Category Assignment Flow
+- **File**: `mystica-express/src/repositories/EquipmentRepository.ts` lines 681-694
+- **Validation**: Quote the exact slot-category mapping in `validateSlotCompatibility()` method
+- **Check**: What categories are allowed for each slot (weapon, offhand, head, armor, feet, accessory_1, accessory_2, pet)
+
+### 2. Service Layer Category-to-Slot Logic
+- **File**: `mystica-express/src/services/EquipmentService.ts` lines 154-174
+- **Validation**: Quote the exact `mapCategoryToSlot()` method that determines which slot an item goes into
+- **Check**: How does the service determine slot from item category?
+
+### 3. Controller Endpoint Logic
+- **File**: `mystica-express/src/controllers/EquipmentController.ts` lines 63-87
+- **Validation**: Quote how the `/equipment/equip` endpoint processes requests
+- **Check**: Does the controller validate category-slot compatibility?
+
+### 4. API Schema Validation
+- **File**: `mystica-express/src/types/schemas.ts` lines 21-23
+- **Validation**: Quote the `EquipItemSchema` - does it require a slot parameter or is slot auto-detected?
+- **Check**: What parameters are required in the equip request?
+
+### 5. Database RPC Function
+- **File**: `mystica-express/src/repositories/EquipmentRepository.ts` lines 333-339
+- **Validation**: Quote the `equipItemAtomic` RPC call
+- **Check**: What parameters are passed to the `equip_item` RPC function?
+
+### 6. Frontend-Backend Contract
+- **File**: `New-Mystica/New-Mystica/ViewModels/EquipmentViewModel.swift` lines 48-58
+- **Validation**: Quote the `equipItem` method in frontend
+- **Check**: What parameters does the frontend send to `/api/v1/equipment/equip`?
+
+## Expected Findings
+
+Based on my initial analysis, I suspect the issue is in one of these areas:
+1. **API Schema Mismatch**: Frontend may be sending `slotName` but backend expects auto-detection from item category
+2. **Category Mapping Logic**: The `mapCategoryToSlot()` method may have incorrect logic
+3. **RPC Parameter Passing**: Wrong slot name may be passed to the database RPC function
+4. **Validation Logic**: The `validateSlotCompatibility()` may have incorrect category-to-slot mappings
+
+## Investigation Instructions
+
+1. **For each file listed above**: Quote the exact relevant code snippets with line numbers
+2. **Trace the complete flow**: From frontend tap → API request → service logic → repository → database
+3. **Identify discrepancies**: Look for mismatched parameter names, incorrect mappings, or validation errors
+4. **Test hypothesis**: Based on the user report (weapon items going to armor slot), identify the specific bug
+
+## Output Format
+
+Provide a structured report with:
+1. **Code Flow Diagram**: Step-by-step flow with exact parameter names and values
+2. **Quoted Evidence**: Exact code snippets for each step with file:line references
+3. **Root Cause Analysis**: Identify the specific line/method causing the wrong slot assignment
+4. **Reproduction Steps**: How to reproduce the bug based on your findings
+5. **Fix Recommendation**: What code needs to be changed
+
+This is a critical bug affecting core gameplay - please be thorough and quote actual code to prove your findings.
+
+Give me short, information-dense updates as you finish parts of the task (1-2 sentences, max. Incomplete sentences are fine). Only give these updates if you have important information to share. Prepend updates with: [UPDATE]
