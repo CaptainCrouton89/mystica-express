@@ -43,6 +43,15 @@ logger.error('Database error', { query: 'SELECT...', error: err.message });
 
 **Configuration:** Log level controlled by `LOG_LEVEL` env var (default: debug)
 
+### image-url.ts
+Generate R2 storage URLs for materials and item types using snake_case normalization.
+
+**Functions:**
+- `getMaterialImageUrl(materialName)` - Returns `{R2_URL}/materials/{snake_case}.png`
+- `getItemTypeImageUrl(itemTypeName)` - Returns `{R2_URL}/items/{snake_case}.png`
+
+Both normalize whitespace to underscores and convert to lowercase.
+
 ## Patterns
 
 - **Error Handling:** Never fallback - throw immediately with descriptive errors
